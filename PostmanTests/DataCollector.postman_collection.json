@@ -1,0 +1,31 @@
+{
+	"variables": [],
+	"info": {
+		"name": "DataCollector",
+		"_postman_id": "9bfdc7fe-9e0e-11bf-ba63-3e22815da61e",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Working Example",
+			"request": {
+				"url": "localhost/api/temp",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"id\": \"id\", \"key\": \"key\", \"temperature\": \"5.4\", \"time\": 1 }"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
