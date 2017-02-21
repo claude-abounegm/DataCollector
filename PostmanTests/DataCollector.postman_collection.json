@@ -10,7 +10,7 @@
 		{
 			"name": "Working Example",
 			"request": {
-				"url": "localhost/api/temp",
+				"url": "localhost:3000/api/temp",
 				"method": "POST",
 				"header": [
 					{
