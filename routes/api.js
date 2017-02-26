@@ -3,17 +3,17 @@
 let express = require('express');
 let router = express.Router();
 
-let temperature = require('../schemas/temperature');
+let Temperature = require('../models/temperature');
 
-router.get('/temp', function(req, res, next) {
-    temperature.find(function(err, temp) {
+router.get('/temp', function(req, res) {
+    Temperature.find(function(err, temp) {
         res.json(temp);
     });
 });
 
 // listen for POST request on /api/temp
 //noinspection JSUnresolvedFunction
-router.post('/temp', function(req, res, next) {
+router.post('/temp', function(req, res) {
     let data = {
         'id': req.body['id'],
         'key': req.body['key'],
@@ -21,32 +21,26 @@ router.post('/temp', function(req, res, next) {
         'time': +req.body['time'] || 0
     };
 
-    let message;
     let success = false;
-    if(!data.id) {
-        message = 'Missing id parameter.';
-    } else if(!data.key) {
-        message = 'Missing key parameter.';
-    } else if(data.temperature <= 0) {
-        message = 'Invalid temperature parameter.';
-    } else if(data.time <= 0) {
-        message = 'Invalid time parameter.';
-    } else {
-        message = "Sensor values updated successfully.";
-        success = true;
-    }
+    Temperature.create(data, function (err) {
+        if(err) {
+            success = false;
 
-    temperature.create(data);
+            console.log('Error(s) in validation:');
+            Object.keys(err.errors).forEach(function (key) {
+                console.log('\t* ' + err.errors[key].message);
+            });
+        } else {
+            success = true;
+        }
 
-    // take a look at the parsed data
-    let result = { 'success': success, 'message': message };
+        // log the data
+        console.log('Data debug output: ');
+        console.log({ data:  data, success: success });
 
-    // log the data
-    console.log({ 'data':  data, 'result': result });
-
-    // send back the result
-    res.send(result);
-    res.end();
+        // send back the result
+        res.json({ success: success });
+    });
 });
 
 module.exports = router;

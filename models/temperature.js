@@ -2,7 +2,11 @@
 
 let mongoose = require('mongoose');
 
-let temperatureSchema = mongoose.Schema({
+let numberValidate = [function (val) {
+    return val > 0;
+}, 'Path `{PATH}` needs to be greater than zero.'];
+
+let temperatureSchema = new mongoose.Schema({
     id: {
         type: String,
         required: true
@@ -13,11 +17,13 @@ let temperatureSchema = mongoose.Schema({
     },
     temperature: {
         type: Number,
-        required: true
+        required: true,
+        validate: numberValidate
     },
     time: {
         type: Number,
-        required: true
+        required: true,
+        validate: numberValidate
     }
 });
 
