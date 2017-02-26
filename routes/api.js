@@ -3,6 +3,14 @@
 let express = require('express');
 let router = express.Router();
 
+let temperature = require('../schemas/temperature');
+
+router.get('/temp', function(req, res, next) {
+    temperature.find(function(err, temp) {
+        res.json(temp);
+    });
+});
+
 // listen for POST request on /api/temp
 //noinspection JSUnresolvedFunction
 router.post('/temp', function(req, res, next) {
@@ -27,6 +35,8 @@ router.post('/temp', function(req, res, next) {
         message = "Sensor values updated successfully.";
         success = true;
     }
+
+    temperature.create(data);
 
     // take a look at the parsed data
     let result = { 'success': success, 'message': message };
