@@ -22,13 +22,13 @@ DEBUG = 1
 READ_DELAY = 0.5
 AVERAGE_COUNT = 3
 
+UPDATE_URL = "http://127.0.0.1:3000/api/sensors/"
+
 TEMP_SENSOR_ID = "TEMP0"
 TEMP_SENSOR_KEY = "28-0516b2d083ff"
-TEMP_UPDATE_URL = "http://127.0.0.1:3000/api/temp"
 
 LIGHT_SENSOR_ID = "LIGHT0"
 LIGHT_SENSOR_KEY = "LIGHT0"
-LIGHT_UPDATE_URL = "http://127.0.0.1:3000/api/light"
 LIGHT_MIN_VALUE = 0.0
 LIGHT_MAX_VALUE = 800000.0
 LIGHT_PIN = 18
@@ -79,17 +79,17 @@ def RCtime (RCpin):
         return math.exp((-reading*10)/LIGHT_MAX_VALUE) * 100
 # END LIGHT #
 
-def post_data(url, id, key, type, value):
+def post_data(sensorType, id, key, value):
 	payload = {
 		'id':           id,
 		'key':          key,
+		'value':		value,
 		'time':         int(time.time())
 	}
-	payload[type] = value;
-	print('{:s}: ({:d}) {:1.3f}'.format(type, payload['time'], value))
+	print('{:s}: ({:d}) {:1.3f}'.format(sensorType, payload['time'], value))
 
 	try:
-		resp = requests.post(url, data = payload)
+		resp = requests.post(UPDATE_URL + sensorType, data = payload)
 		data = json.loads(resp.text)
 		return data["success"] is True
 	except:
@@ -105,14 +105,14 @@ while (True):
 		else:
 			avg_temp = get_average_temperature(device_file)
 			if(avg_temp > 0):
-				post_data(TEMP_UPDATE_URL, TEMP_SENSOR_ID, TEMP_SENSOR_KEY, 'temperature', avg_temp)
+				post_data('temperature', TEMP_SENSOR_ID, TEMP_SENSOR_KEY, avg_temp)
 	except KeyboardInterrupt:
 		break
 	except Exception as e:
 		print('Error getting temp reading: ' + str(e))
 
 	try:
-		post_data(LIGHT_UPDATE_URL, LIGHT_SENSOR_ID, LIGHT_SENSOR_KEY, 'light', RCtime(LIGHT_PIN))
+		post_data('light', LIGHT_SENSOR_ID, LIGHT_SENSOR_KEY, RCtime(LIGHT_PIN))
 	except KeyboardInterrupt:
 		break
 	except Exception as e:

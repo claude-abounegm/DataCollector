@@ -1,15 +1,12 @@
 'use strict';
 
-let express = require('express');
-let logger = require('morgan');
-let bodyParser = require('body-parser');
-let mongoose = require('mongoose');
+const express = require('express');
+const logger = require('morgan');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const app = express();
 
 mongoose.connect('mongodb://localhost/data');
-global.db = mongoose.connection;
-
-// the actual app
-let app = express();
 
 // The logger shows each request sent to the server
 app.use(logger('dev'));

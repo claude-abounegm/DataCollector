@@ -6,7 +6,7 @@ let numberValidate = [function (val) {
     return val > 0;
 }, 'Path `{PATH}` needs to be greater than zero.'];
 
-let lightSchema = new mongoose.Schema({
+let sensorSchema = new mongoose.Schema({
     id: {
         type: String,
         required: true
@@ -15,7 +15,7 @@ let lightSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    light: {
+    value: {
         type: Number,
         required: true,
         validate: numberValidate
@@ -27,5 +27,5 @@ let lightSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Light', lightSchema);
+module.exports = sensorSchema;
 

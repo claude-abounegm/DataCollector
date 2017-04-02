@@ -1,90 +1,67 @@
 'use strict';
 
-let express = require('express');
-let router = express.Router();
+const express = require('express');
+const mongoose = require('mongoose');
+const router = express.Router();
+const request = require('request');
+const sensorSchema = require('../schemas/sensor');
 
-let Temperature = require('../models/temperature');
-let Light = require('../models/light'); //ABBY ADDED
+const models = {
+    'temperature': mongoose.model('Temperature', sensorSchema),
+    'light': mongoose.model('Light', sensorSchema)
+};
 
-
-router.get('/temp', function(req, res) {
-    Temperature.find(function(err, temp) {
-        res.json(temp);
-    });
+router.get('/sensors/:type', function(req, res) {
+    let sensorType = req.params['type'];
+    let model = models[sensorType];
+    if(model) {
+        model.find(function(err, data) {
+            res.json(data);
+        });
+    } else {
+        res.json({ 'error': 'Cannot find sensor of type: ' + sensorType });
+    }
 });
 
-//ABBY ADDED
-router.get('/light', function(req, res) {
-    Light.find(function(err, light) {
-        res.json(light);
-    });
-});
-//END OF ABBY ADDED
-
-// listen for POST request on /api/temp
+// listen for POST request on /api/sensors/light or /api/sensors/temperature
 //noinspection JSUnresolvedFunction
-router.post('/temp', function(req, res) {
-    let data = {
-        'id': req.body['id'],
-        'key': req.body['key'],
-        'temperature': +req.body['temperature'] || 0,
-        'time': +req.body['time'] || 0
-    };
+router.post('/sensors/:type', function(req, res) {
+    let sensorType = req.params['type'];
+    let model = models[sensorType];
+    if(!model) {
+        res.json({ success: false });
+    } else {
+        let data = {
+            'id': req.body['id'],
+            'key': req.body['key'],
+            'value': +req.body['value'] || 0,
+            'time': +req.body['time'] || 0
+        };
 
-    let success = false;
-    Temperature.create(data, function (err) {
-        if(err) {
-            success = false;
+        model.create(data, function (err) {
+            let success = false;
+            if (err) {
+                success = false;
 
-            console.log('Error(s) in validation:');
-            Object.keys(err.errors).forEach(function (key) {
-                console.log('\t* ' + err.errors[key].message);
-            });
-        } else {
-            success = true;
-        }
+                console.log('Error(s) in validation:');
+                Object.keys(err.errors).forEach(function (key) {
+                    console.log('\t* ' + err.errors[key].message);
+                });
+            } else {
+                success = true;
+            }
 
-        // log the data
-        console.log('Data debug output: ');
-        console.log({ data:  data, success: success });
+            // log the data
+            console.log({data: data, success: success});
 
-        // send back the result
-        res.json({ success: success });
-    });
+            // send back the result
+            res.json({success: success});
+        });
+    }
 });
 
-// ABBY ADDED
-// listen for POST request on /api/light
-//noinspection JSUnresolvedFunction
-router.post('/light', function(req, res) {
-    let data = {
-        'id': req.body['id'],
-        'key': req.body['key'],
-        'light': +req.body['light'] || 0,
-        'time': +req.body['time'] || 0
-    };
+router.post('/config', function(req, res) {
 
-    let success = false;
-    Light.create(data, function (err) {
-        if(err) {
-            success = false;
-
-            console.log('Error(s) in validation:');
-            Object.keys(err.errors).forEach(function (key) {
-                console.log('\t* ' + err.errors[key].message);
-            });
-        } else {
-            success = true;
-        }
-
-        // log the data
-        console.log('Data debug output: ');
-        console.log({ data:  data, success: success });
-
-        // send back the result
-        res.json({ success: success });
-    });
 });
-//END OF ABBY ADDED
 
 module.exports = router;
