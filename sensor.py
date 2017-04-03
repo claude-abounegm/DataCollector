@@ -31,8 +31,7 @@ TEMP_SENSOR_KEY = "28-0516b2d083ff"
 
 LIGHT_SENSOR_ID = "LIGHT0"
 LIGHT_SENSOR_KEY = "LIGHT0"
-LIGHT_MIN_VALUE = 0.0
-LIGHT_MAX_VALUE = 800000.0
+LIGHT_MAX_VALUE = 12.0
 LIGHT_PIN = 18
 
 # START TEMPERATURE #
@@ -76,13 +75,13 @@ def RCtime (RCpin):
 
         # read the capacitor voltage
         GPIO.setup(RCpin, GPIO.IN)
-        timeBefore = int(time.time());
+        timeBefore = time.time();
         timeElapsed = 0;
         while (GPIO.input(RCpin) == GPIO.LOW and timeElapsed < LIGHT_MAX_VALUE):
-                timeElapsed = int(time.time()) - timeBefore;
+                timeElapsed = time.time() - timeBefore;
 
-        return timeElapsed
-        # return math.exp((-reading*10)/LIGHT_MAX_VALUE) * 100
+        #return timeElapsed * 1000
+        return math.exp((-timeElapsed*15)/LIGHT_MAX_VALUE) * 100
 # END LIGHT #
 
 def post_data(sensorType, id, key, value):

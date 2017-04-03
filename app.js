@@ -4,7 +4,7 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const app = require('express')();
-const {spawn} = require('child_process');
+const spawn = require('child_process').spawn;
 const config = require('./config.json');
 
 let sensorProcess;
