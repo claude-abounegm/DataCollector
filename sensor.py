@@ -31,8 +31,13 @@ TEMP_SENSOR_KEY = "28-0516b2d083ff"
 
 LIGHT_SENSOR_ID = "LIGHT0"
 LIGHT_SENSOR_KEY = "LIGHT0"
-LIGHT_MAX_VALUE = 12.0
-LIGHT_PIN = 18
+LIGHT_MAX_VALUE = 120.0
+
+LIGHT_INPUT_PIN = 18
+LIGHT_OUTPUT_PIN = 23
+
+CAPACITOR_FARADS = 2.27/1000000.0
+RC_DIVISOR = (-CAPACITOR_FARADS*math.log(1-1.2/3.31))
 
 # START TEMPERATURE #
 def get_temperature_file():
@@ -67,21 +72,33 @@ def get_average_temperature(file):
 # END TEMPERATURE #
 
 # START LIGHT #
-def RCtime (RCpin):
-        # discharge the capacitor
-        GPIO.setup(RCpin, GPIO.OUT)
-        GPIO.output(RCpin, GPIO.LOW)
-        time.sleep(0.1)
+def setup_rc(inputPin, outputPin):
+        # initially discharge the capacitor
+        GPIO.setup(inputPin, GPIO.OUT)
+        GPIO.output(inputPin, GPIO.LOW)
 
-        # read the capacitor voltage
-        GPIO.setup(RCpin, GPIO.IN)
-        timeBefore = time.time();
-        timeElapsed = 0;
-        while (GPIO.input(RCpin) == GPIO.LOW and timeElapsed < LIGHT_MAX_VALUE):
-                timeElapsed = time.time() - timeBefore;
+        GPIO.setup(outputPin, GPIO.OUT)
+        time.sleep(0.3)
 
-        #return timeElapsed * 1000
-        return math.exp((-timeElapsed*15)/LIGHT_MAX_VALUE) * 100
+def get_rc_resistance(inputPin, outputPin):
+        total = 0
+        for i in range(0, AVERAGE_COUNT):
+            GPIO.output(outputPin, GPIO.HIGH)
+            
+            # read the capacitor voltage (HIGH ~1.2V)
+            GPIO.setup(inputPin, GPIO.IN)
+            timeBefore = time.time();
+            while (GPIO.input(inputPin) == GPIO.LOW):
+                pass
+            
+            total += (time.time() - timeBefore)/RC_DIVISOR            
+            GPIO.output(outputPin, GPIO.LOW)
+            GPIO.setup(inputPin, GPIO.OUT)
+            GPIO.output(inputPin, GPIO.LOW)
+            time.sleep(0.3)
+
+        
+        return total/AVERAGE_COUNT
 # END LIGHT #
 
 def post_data(sensorType, id, key, value):
@@ -100,6 +117,7 @@ def post_data(sensorType, id, key, value):
 	except:
 		return False
 
+setup_rc(LIGHT_INPUT_PIN, LIGHT_OUTPUT_PIN)
 print ('Collecting Data')
 sys.stdout.flush()
 device_file = get_temperature_file()
@@ -119,7 +137,7 @@ while (True):
 		print('Error getting temp reading: ' + str(e))
 
 	try:
-		post_data('light', LIGHT_SENSOR_ID, LIGHT_SENSOR_KEY, RCtime(LIGHT_PIN))
+		post_data('light', LIGHT_SENSOR_ID, LIGHT_SENSOR_KEY, get_rc_resistance(LIGHT_INPUT_PIN, LIGHT_OUTPUT_PIN))
 	except KeyboardInterrupt:
 		break
 	except Exception as e:
