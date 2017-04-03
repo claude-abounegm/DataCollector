@@ -1,36 +1,35 @@
 'use strict';
 
-const express = require('express');
 const mongoose = require('mongoose');
-const router = express.Router();
-const request = require('request');
+const router = require('express').Router();
 const sensorSchema = require('../schemas/sensor');
+// const request = require('request');
 
 const models = {
     'temperature': mongoose.model('Temperature', sensorSchema),
     'light': mongoose.model('Light', sensorSchema)
 };
 
-router.get('/sensors/:type', function(req, res) {
+router.get('/sensors/:type', function(req, res, next) {
     let sensorType = req.params['type'];
     let model = models[sensorType];
+
     if(model) {
         model.find(function(err, data) {
             res.json(data);
         });
     } else {
-        res.json({ 'error': 'Cannot find sensor of type: ' + sensorType });
+        next();
     }
 });
 
 // listen for POST request on /api/sensors/light or /api/sensors/temperature
 //noinspection JSUnresolvedFunction
-router.post('/sensors/:type', function(req, res) {
+router.post('/sensors/:type', function(req, res, next) {
     let sensorType = req.params['type'];
     let model = models[sensorType];
-    if(!model) {
-        res.json({ success: false });
-    } else {
+
+    if (model) {
         let data = {
             'id': req.body['id'],
             'key': req.body['key'],
@@ -57,6 +56,8 @@ router.post('/sensors/:type', function(req, res) {
             // send back the result
             res.json({success: success});
         });
+    } else {
+        next();
     }
 });
 

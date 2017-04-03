@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
+import sys
 import os
 import glob
 import time
-import sys
 
 import json
 import requests
@@ -18,8 +18,10 @@ os.system('modprobe w1-therm')
 
 BASE_DIR = '/sys/bus/w1/devices/'
 
-DEBUG = 1
 READ_DELAY = 0.5
+if(len(sys.argv) >= 2):
+    READ_DELAY = float(sys.argv[1])
+
 AVERAGE_COUNT = 3
 
 UPDATE_URL = "http://127.0.0.1:3000/api/sensors/"
@@ -35,12 +37,12 @@ LIGHT_PIN = 18
 
 # START TEMPERATURE #
 def get_temperature_file():
-	file = None;
+	file = None
 	try:
-		file = glob.glob(BASE_DIR + '28*')[0] + '/w1_slave';
+		file = glob.glob(BASE_DIR + '28*')[0] + '/w1_slave'
 	except:
-		pass;
-	return file;
+		pass
+	return file
 
 def read_temperature(file):
 	lines = None
@@ -58,7 +60,7 @@ def read_temperature(file):
 	return (temp_c, temp_f)
 
 def get_average_temperature(file):	
-	total_f = 0;
+	total_f = 0
 	for i in range(0, AVERAGE_COUNT):
 		temp_c, temp_f = read_temperature(file)
 		total_f += temp_f
@@ -67,16 +69,20 @@ def get_average_temperature(file):
 
 # START LIGHT #
 def RCtime (RCpin):
-        reading = 0
+        # discharge the capacitor
         GPIO.setup(RCpin, GPIO.OUT)
         GPIO.output(RCpin, GPIO.LOW)
         time.sleep(0.1)
- 
+
+        # read the capacitor voltage
         GPIO.setup(RCpin, GPIO.IN)
-        # This takes about 1 millisecond per loop cycle
-        while (GPIO.input(RCpin) == GPIO.LOW and reading < LIGHT_MAX_VALUE):
-                reading += 1
-        return math.exp((-reading*10)/LIGHT_MAX_VALUE) * 100
+        timeBefore = int(time.time());
+        timeElapsed = 0;
+        while (GPIO.input(RCpin) == GPIO.LOW and timeElapsed < LIGHT_MAX_VALUE):
+                timeElapsed = int(time.time()) - timeBefore;
+
+        return timeElapsed
+        # return math.exp((-reading*10)/LIGHT_MAX_VALUE) * 100
 # END LIGHT #
 
 def post_data(sensorType, id, key, value):
@@ -95,6 +101,8 @@ def post_data(sensorType, id, key, value):
 	except:
 		return False
 
+print ('Collecting Data')
+sys.stdout.flush()
 device_file = get_temperature_file()
 while (True):
 	try:
