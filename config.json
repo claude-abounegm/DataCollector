@@ -1,3 +1,8 @@
 {
-    "readDelay": 0.5
+    "readDelay": 0.5,
+    "upperTempLimit": 73,
+    "lowerTempLimit": 67,
+    "brightLight": 70,
+    "darkLight": 30,
+    "mirrorAddress": "127.0.0.1"
 }

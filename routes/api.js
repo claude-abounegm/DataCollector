@@ -3,7 +3,14 @@
 const mongoose = require('mongoose');
 const router = require('express').Router();
 const sensorSchema = require('../schemas/sensor');
-// const request = require('request');
+const request = require('request');
+const config = require('../config.json');
+
+let blindsOpen = false;
+let currentData = {
+    'temperature': 70,
+    'light': 100
+};
 
 const models = {
     'temperature': mongoose.model('Temperature', sensorSchema),
@@ -48,6 +55,7 @@ router.post('/sensors/:type', function(req, res, next) {
                 });
             } else {
                 success = true;
+                currentData[sensorType] = data.value;
             }
 
             // log the data
@@ -55,14 +63,32 @@ router.post('/sensors/:type', function(req, res, next) {
 
             // send back the result
             res.json({success: success});
+
+            handleData();
         });
     } else {
         next();
     }
 });
 
-router.post('/config', function(req, res) {
+function handleData() {
+    let currentTemp = currentData['temperature'];
+    let currentLight = currentData['light'];
 
-});
+    if(currentTemp >= config.lowerTempLimit && currentTemp <= config.upperTempLimit) {
+        request.put(config.mirrorAddress, { command: "up" });
+        request.put(config.mirrorAddress, { command: "hvacOff" });
+    } else if(currentTemp < config.lowerTempLimit && !blindsOpen && currentLight >= config.brightLight) {
+        blindsOpen = true;
+        request.put(config.mirrorAddress, { command: "up" });
+    } else if (currentTemp < config.lowerTempLimit && !blindsOpen && currentLight <= config.darkLight) {
+        request.put(config.mirrorAddress, { command: "heat" });
+    } else if (currentTemp > config.upperTempLimit && blindsOpen && currentLight >= config.brightLight) {
+        blindsOpen = false;
+        request.put(config.mirrorAddress, { command: "down" });
+    } else if(currentTemp < config.lowerTempLimit && blindsOpen) {
+        request.put(config.mirrorAddress, { command: "heat" });
+    }
+}
 
 module.exports = router;
