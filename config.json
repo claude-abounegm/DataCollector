@@ -1,8 +1,11 @@
 {
-    "readDelay": 0.5,
-    "upperTempLimit": 73,
-    "lowerTempLimit": 67,
-    "brightLight": 70,
-    "darkLight": 30,
-    "mirrorAddress": "127.0.0.1"
+    "readDelay": 5,
+    
+    "upperTempLimit": 80,
+    "lowerTempLimit": 65,
+    
+    "brightResistance": 1000,
+    "darkResistance": 700000,
+    
+    "mirrorAddress": "http://10.4.5.43:8080/"
 }
