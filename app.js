@@ -77,8 +77,8 @@ mongoose.connect('mongodb://127.0.0.1/data', (error) => {
 });
 
 // localhost:3000/
-app.listen(3000, () => {
-    console.log('Server has been started on port 3000.');
+app.listen(80, () => {
+    console.log('Server has been started on port 80.');
 });
 
 process.on('SIGINT', () => {
